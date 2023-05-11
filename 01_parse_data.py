@@ -4,10 +4,10 @@ import sys
 import html
 import datetime
 import pandas as pd
-
+from datetime import datetime
 from bs4 import BeautifulSoup
 
-arg_filenames = ['data/ipa230105.xml']
+arg_filenames = ['data/ipg230103.xml']
 
 MAX_ENTRIES = 1000
 
@@ -30,7 +30,15 @@ def parse_uspto_file(bs, logging=False):
     """
     Parses a USPTO patent in a BeautifulSoup object.
     """
+
+    abstracts = []
+    for el in bs.find_all('abstract'):
+        abstracts.append(el.text.strip('\n'))
     
+    # FILTERING OUT NO ABSTRACT PATENTS HERE
+    if len(abstracts) == 0:
+        return None
+
     publication_title = bs.find('invention-title').text
     publication_num = bs['file'].split("-")[0]
     publication_date = bs.find('publication-reference').find('date').text
@@ -68,10 +76,8 @@ def parse_uspto_file(bs, logging=False):
                 last_name = el.find('last-name').text
                 authors.append(first_name + " " + last_name)
 
-    abstracts = []
-    for el in bs.find_all('abstract'):
-        abstracts.append(el.text.strip('\n'))
-    
+    publication_date = datetime.strptime(publication_date, '%Y%m%d') 
+
     descriptions = []
     for el in bs.find_all('description'):
         descriptions.append(el.text.strip('\n'))
@@ -83,7 +89,7 @@ def parse_uspto_file(bs, logging=False):
     uspto_patent = {
         "publication_title": publication_title,
         "publication_number": publication_num,
-        "publication_date": publication_date,
+        "publication_date": '{:%B %d, %Y}'.format(publication_date),
         "application_type": application_type,
         "authors": authors, # list
         "sections": list(sections.keys()),
@@ -94,6 +100,7 @@ def parse_uspto_file(bs, logging=False):
         "descriptions": descriptions, # list
         "claims": claims # list
     }
+    # print(uspto_patent)
         
     if logging:
         
@@ -133,10 +140,10 @@ def parse_uspto_file(bs, logging=False):
         for claim in claims:
             print(claim)
 
-    title = "Shower shield system for bathroom shower drain areaways"
-    if bs.find('invention-title').text == title:
-        print(bs)
-        exit()
+    # title = "Shower shield system for bathroom shower drain areaways"
+    # if bs.find('invention-title').text == title:
+    #     print(bs)
+    #     exit()
 
     return uspto_patent
 
@@ -149,7 +156,7 @@ def gen_entry(filename,uspto_patent):
         "patent_number": uspto_patent['publication_number'],
         "publication_date": uspto_patent['publication_date'],
         "application_type": uspto_patent['application_type'],
-        #"authors": ','.join(uspto_patent['authors']),
+        # "authors": ','.join(uspto_patent['authors']),
         #"sections": ','.join(uspto_patent['sections']),
         #"section_classes": ','.join(uspto_patent['section_classes']),
         #"section_class_subclasses": ','.join(uspto_patent['section_class_subclasses']),
@@ -290,10 +297,10 @@ for filename in filenames:
 
             if bs.find('sequence-cwu') is not None:
                 continue # Skip DNA sequence documents
-    
-            application = bs.find('us-patent-application')
+
+            application = bs.find('us-patent-grant')
             if application is None: # If no application, search for grant
-                application = bs.find('us-patent-grant')
+                application = bs.find('us-patent-application')
             title = "None"
     
             try:
@@ -301,32 +308,35 @@ for filename in filenames:
             except Exception as e:          
                 print("Error", count, e)
 
+            uspto_patent=None
             try:
                 uspto_patent = parse_uspto_file(application)
                 #write_to_db(uspto_patent, db=db)
                 #print(uspto_patent)
+                if uspto_patent != None:
 
-   
-                entry = gen_entry(filename,uspto_patent)
+                    entry = gen_entry(filename,uspto_patent)
 
-                #print(entry['abstract'])
+                    #print(entry['abstract'])
 
-                if len(entry['abstract']) > 0:
-                    patentEntries.append(entry)
+                    if len(entry['abstract']) > 0:
+                        patentEntries.append(entry)
 
-                    success_count += 1
+                        success_count += 1
 
             except Exception as e:
                 
                 exception_tuple = (count, title, e)
                 errors.append(exception_tuple)
                 print(exception_tuple)
-       
-            if (success_count+len(errors)) % 50 == 0:
-                print(count, filename, title)
-                #db.commit_to_db()
+            
+            if uspto_patent != None:
+                if (success_count+len(errors)) % 50 == 0:
+                    print(success_count, filename, title)
+                    #db.commit_to_db()
             count += 1
 
+            # print(success_count)
             if success_count == MAX_ENTRIES:
                 break
 

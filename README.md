@@ -42,15 +42,19 @@ npm run build
 echo OPENAI_API_KEY=youropenaikeyhere > .env
 ```
 
-3. **Acquire data from USTPO**. The data is provided from [USTPO's bulk data project website here](https://bulkdata.uspto.gov/), under the section "Patent Grant Full Text Data (No Images) (JAN 1976 - PRESENT)". For this demo app, only a single week of data is downloaded and processed using the instructions below:
+3. **Acquire data from USTPO**. The data is provided from [USTPO's bulk data project website here](https://bulkdata.uspto.gov/), under the section "Patent Grant Full Text Data (No Images) (JAN 1976 - PRESENT)" or "Patent Application Full Text Data (No Images) (MAR 15, 2001 - PRESENT)". For this demo app, only a single week of data is downloaded and processed using the instructions below, and the script filters out only abstract text:
 
 ```
 cd data
 wget https://bulkdata.uspto.gov/data/patent/grant/redbook/fulltext/2023/ipg230103.zip
 unzip ipg230103.zip
+
+# example of application data
+wget https://bulkdata.uspto.gov/data/patent/application/redbook/fulltext/2023/ipa230105.zip
+unzip ipa230105.zip
 ```
 
-4. **Parse the USTPO bulk data xml file to a single format csv file**. We decided to initially use the CSV langchain loader for proof of concept purposes, but as the data scales up better loaders would be preferred. By default the script only parses the first 1000 patents in the file (so the chatbot context has only 1000 patents in it by default):
+4. **Parse the USTPO bulk data xml file to a single format csv file**. We decided to initially use the CSV langchain loader for proof of concept purposes, but as the data scales up better loaders would be preferred. By default the script only parses the first 1000 patents in the file (so the chatbot context has only 1000 patents in it by default - takes about 3-5 minutes to process):
 
 ```
 python3 01_parse_data.py
