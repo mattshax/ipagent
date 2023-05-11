@@ -7,12 +7,7 @@ This project is an exploratory chatbot created for the [1871 ChatGPT Hackathon M
 More specifically, the hackathon considered two potential high-level approaches to getting context relevant information from ChatGPT via the API:
 
 1. AutoGPT for Searching Google Patents and aggregating results
-    - https://github.com/Significant-Gravitas/Auto-GPT
-    - https://github.com/reworkd/AgentGPT
-
 2. Vectorized database and GPT API as an interpreter
-    - https://medium.com/singapore-gds/integrating-chatgpt-with-internal-knowledge-base-and-question-answer-platform-36a3283d6334
-    - https://github.com/yvann-hub/Robby-chatbot 
 
 Preliminary tests were run on the first approach using preexisting Agent tools, and it was decided that approach two could yield more relevant results in a faster timeframe (although requires data preparation). The workflow developed looked something like below:
 
