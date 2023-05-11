@@ -31,6 +31,11 @@ def parse_uspto_file(bs, logging=False):
     Parses a USPTO patent in a BeautifulSoup object.
     """
 
+    application_type = bs.find('application-reference')['appl-type']
+
+    if application_type != 'utility':
+        return None
+
     abstracts = []
     for el in bs.find_all('abstract'):
         abstracts.append(el.text.strip('\n'))
@@ -42,7 +47,7 @@ def parse_uspto_file(bs, logging=False):
     publication_title = bs.find('invention-title').text
     publication_num = bs['file'].split("-")[0]
     publication_date = bs.find('publication-reference').find('date').text
-    application_type = bs.find('application-reference')['appl-type']
+    
 
 
     # International Patent Classification (IPC) Docs:
